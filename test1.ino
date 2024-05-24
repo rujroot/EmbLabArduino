@@ -21,7 +21,7 @@ String light = "500";
 String distance = "20";
 String sound = "2000";
 String place = "Device 1";
-String LED = "off";
+String LED = "0";
 String LED_SET = "2";
 int mode = 2;
 
@@ -83,6 +83,7 @@ void readData(){
 
     // Split the received data by comma
     String ReceivedValue[4];
+    ReceivedValue[3] = "";
     int commaIndex = 0, i = 0;
     while ((commaIndex = receivedData.indexOf(',')) >= 0) {
         String part = receivedData.substring(0, commaIndex);
@@ -101,8 +102,15 @@ void readData(){
     distance = ReceivedValue[2];
     LED = ReceivedValue[3];
 
-    if(LED == "0") LED = "on";
-    else LED = "off";
+    int intLight = light.toInt();
+    int intSound = sound.toInt();
+    int intDistance = distance.toInt();
+
+    light = String(min(1500, max(intLight, 0)));
+    sound = String(min(4000, max(intSound, 2000)));
+    distance = String(min(800 , max(intDistance, 0)));
+
+    if(LED == "") LED = "0";
   }
 }
 
@@ -118,10 +126,10 @@ void loop() {
   testSerial.println(String(mode));
 
   long now = millis();
-  if (now - lastMsg > 10000) {
+  if (now - lastMsg > 1000) {
     lastMsg = now;
     ++value;
-    String data = "{\"data\": {\"light\":" + String(light) + ", \"distance\":" + String(distance) + ", \"sound\":" + String(sound) + ", \"place\":\"" + String(place) + "\", \"led\":\"" + String(LED) + "\"}}";
+    String data = "{\"data\": {\"light\":" + String(light) + ", \"distance\":" + String(distance) + ", \"sound\":" + String(sound) + ", \"place\":\"" + String(place) + "\", \"led\":" + String(LED) + "}}";
     Serial.println(data);
     data.toCharArray(msg, (data.length() + 1));
     client.publish("@shadow/data/update", msg);
